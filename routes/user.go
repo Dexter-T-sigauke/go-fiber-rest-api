@@ -4,13 +4,14 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/sixfwa/fiber-gorm/database"
 	"github.com/sixfwa/fiber-gorm/models"
 )
 
 type User struct {
-	// This is not the model, more like a serializer
-	ID        uint   `json:"id"`
+	//
+	ID        uuid.UUID   `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
@@ -26,6 +27,7 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
+	user.ID = uuid.New()
 	database.Database.Db.Create(&user)
 	responseUser := CreateResponseUser(user)
 	return c.Status(200).JSON(responseUser)
@@ -43,24 +45,25 @@ func GetUsers(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseUsers)
 }
 
-func findUser(id int, user *models.User) error {
-	database.Database.Db.Find(&user, "id = ?", id)
-	if user.ID == 0 {
+func findUser(id uuid.UUID, user *models.User) error {
+	database.Database.Db.First(&user, "id = ?", id)
+	if user.ID == uuid.Nil {
 		return errors.New("user does not exist")
 	}
 	return nil
 }
 
 func GetUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	id := c.Params("id")
+	uuid, err := uuid.Parse(id)
 
 	var user models.User
 
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(400).JSON("Please ensure that :id is a valid UUID")
 	}
 
-	if err := findUser(id, &user); err != nil {
+	if err := findUser(uuid, &user); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
@@ -70,15 +73,16 @@ func GetUser(c *fiber.Ctx) error {
 }
 
 func UpdateUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	id := c.Params("id")
+	uuid, err := uuid.Parse(id)
 
 	var user models.User
 
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(400).JSON("Please ensure that :id is a valid UUID")
 	}
 
-	err = findUser(id, &user)
+	err = findUser(uuid, &user)
 
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
@@ -103,19 +107,19 @@ func UpdateUser(c *fiber.Ctx) error {
 	responseUser := CreateResponseUser(user)
 
 	return c.Status(200).JSON(responseUser)
-
 }
 
 func DeleteUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	id := c.Params("id")
+	uuid, err := uuid.Parse(id)
 
 	var user models.User
 
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(400).JSON("Please ensure that :id is a valid UUID")
 	}
 
-	err = findUser(id, &user)
+	err = findUser(uuid, &user)
 
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
