@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/sixfwa/fiber-gorm/database"
 	"github.com/sixfwa/fiber-gorm/models"
 )
 
 type Order struct {
-	ID      uint    `json:"id"`
+	// serializer
+	ID      uuid.UUID    `json:"id"`
 	User    User    `json:"user"`
 	Product Product `json:"product"`
 	CreatedAt time.Time `json:"order_date"`
@@ -67,7 +69,7 @@ func GetOrders(c *fiber.Ctx) error {
 
 func FindOrder(id int, order *models.Order) error {
 	database.Database.Db.Find(&order, "id = ?", id)
-	if order.ID == 0 {
+	if order.ID == uuid.Nil {
 		return errors.New("order does not exist")
 	}
 	return nil
