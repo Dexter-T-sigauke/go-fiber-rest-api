@@ -9,7 +9,7 @@ import (
 )
 
 type Product struct {
-	// This is not the model, more like a serializer
+	//serializer
 	ID           uint   `json:"id"`
 	Name         string `json:"name"`
 	SerialNumber string `json:"serial_number"`
