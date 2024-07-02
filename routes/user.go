@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/sixfwa/fiber-gorm/database"
 	"github.com/sixfwa/fiber-gorm/models"
 )
@@ -27,7 +27,7 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	user.ID = uuid.New()
+	user.ID = uuid.Must(uuid.NewV4())
 	database.Database.Db.Create(&user)
 	responseUser := CreateResponseUser(user)
 	return c.Status(200).JSON(responseUser)
@@ -55,7 +55,7 @@ func findUser(id uuid.UUID, user *models.User) error {
 
 func GetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var user models.User
 
@@ -74,7 +74,7 @@ func GetUser(c *fiber.Ctx) error {
 
 func UpdateUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var user models.User
 
@@ -111,7 +111,7 @@ func UpdateUser(c *fiber.Ctx) error {
 
 func DeleteUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var user models.User
 

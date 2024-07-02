@@ -5,16 +5,15 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/sixfwa/fiber-gorm/database"
 	"github.com/sixfwa/fiber-gorm/models"
 )
 
 type Order struct {
-	// serializer
-	ID      uuid.UUID    `json:"id"`
-	User    User    `json:"user"`
-	Product Product `json:"product"`
+	ID        uuid.UUID `json:"id"`
+	User      User      `json:"user"`
+	Product   Product   `json:"product"`
 	CreatedAt time.Time `json:"order_date"`
 }
 
@@ -29,14 +28,14 @@ func CreateOrder(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	var user models.User
+	order.ID = uuid.Must(uuid.NewV4())
 
+	var user models.User
 	if err := findUser(order.UserRefer, &user); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
 	var product models.Product
-
 	if err := findProduct(order.ProductRefer, &product); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
@@ -58,8 +57,8 @@ func GetOrders(c *fiber.Ctx) error {
 	for _, order := range orders {
 		var user models.User
 		var product models.Product
-		database.Database.Db.Find(&user, "id = ?", order.UserRefer)
-		database.Database.Db.Find(&product, "id = ?", order.ProductRefer)
+		database.Database.Db.First(&user, "id = ?", order.UserRefer)
+		database.Database.Db.First(&product, "id = ?", order.ProductRefer)
 		responseOrder := CreateResponseOrder(order, CreateResponseUser(user), CreateResponseProduct(product))
 		responseOrders = append(responseOrders, responseOrder)
 	}
@@ -67,8 +66,8 @@ func GetOrders(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseOrders)
 }
 
-func FindOrder(id int, order *models.Order) error {
-	database.Database.Db.Find(&order, "id = ?", id)
+func FindOrder(id uuid.UUID, order *models.Order) error {
+	database.Database.Db.First(&order, "id = ?", id)
 	if order.ID == uuid.Nil {
 		return errors.New("order does not exist")
 	}
@@ -76,27 +75,27 @@ func FindOrder(id int, order *models.Order) error {
 }
 
 func GetOrder(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	id := c.Params("id")
+	uuid, err := uuid.FromString(id)
 	var order models.Order
 
 	if err != nil {
-		return c.Status(400).JSON("Please ensure that :id is an integer")
+		return c.Status(400).JSON("Please ensure that :id is a valid UUID")
 	}
 
-	if err := FindOrder(id, &order); err != nil {
+	if err := FindOrder(uuid, &order); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
 	var user models.User
 	var product models.Product
 
-	database.Database.Db.First(&user, order.UserRefer)
-	database.Database.Db.First(&product, order.ProductRefer)
+	database.Database.Db.First(&user, "id = ?", order.UserRefer)
+	database.Database.Db.First(&product, "id = ?", order.ProductRefer)
 	responseUser := CreateResponseUser(user)
 	responseProduct := CreateResponseProduct(product)
 
 	responseOrder := CreateResponseOrder(order, responseUser, responseProduct)
 
 	return c.Status(200).JSON(responseOrder)
-
 }

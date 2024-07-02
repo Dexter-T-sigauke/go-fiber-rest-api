@@ -3,14 +3,14 @@ package models
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 type Order struct {
-	ID           uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	ID           uuid.UUID `json:"id" gorm:"type:text;primaryKey"`
 	CreatedAt    time.Time
-	ProductRefer uuid.UUID     `json:"product_id"`
-	Product      Product `gorm:"foreignKey:ProductRefer"`
-	UserRefer    uuid.UUID     `json:"user_id"`
-	User         User    `gorm:"foreignKey:UserRefer"`
+	ProductRefer uuid.UUID `json:"product_id" gorm:"type:text"`
+	Product      Product   `gorm:"foreignKey:ProductRefer"`
+	UserRefer    uuid.UUID `json:"user_id" gorm:"type:text"`
+	User         User      `gorm:"foreignKey:UserRefer"`
 }

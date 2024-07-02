@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/sixfwa/fiber-gorm/database"
 	"github.com/sixfwa/fiber-gorm/models"
 )
@@ -27,7 +27,7 @@ func CreateProduct(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	product.ID = uuid.New()
+	product.ID = uuid.Must(uuid.NewV4())
 	database.Database.Db.Create(&product)
 	responseProduct := CreateResponseProduct(product)
 	return c.Status(200).JSON(responseProduct)
@@ -55,7 +55,7 @@ func findProduct(id uuid.UUID, product *models.Product) error {
 
 func GetProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var product models.Product
 
@@ -74,7 +74,7 @@ func GetProduct(c *fiber.Ctx) error {
 
 func UpdateProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var product models.Product
 
@@ -111,7 +111,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 
 func DeleteProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uuid, err := uuid.Parse(id)
+	uuid, err := uuid.FromString(id)
 
 	var product models.Product
 
